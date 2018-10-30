@@ -1,0 +1,63 @@
+<script src="../../libs/aframe/aframe.min.js"></script>
+<script src="../../libs/jquery/jquery-2.2.4.min.js"></script>
+<!--<script src="https://unpkg.com/aframe-click-drag-component"></script>-->
+<!--<script src="https://rawgit.com/mayognaise/aframe-mouse-cursor-component/master/dist/aframe-mouse-cursor-component.min.js"></script>-->
+
+<script>
+
+</script>
+<script>
+    function Init() {
+        var entity = document.querySelector('#a-obj');
+        entity.addEventListener('click', function (event) {
+            console.log('Entity event type', event.type);
+
+        });
+
+    }
+</script>
+
+
+<body style='margin : 0px; overflow: hidden;' onload="Init();">
+<div id="scene_container">
+<a-scene id="scene" style="pointer-events: auto;" cursor="rayOrigin: mouse" antialias='true' vr-mode-ui="enabled: false" embedded arjs='sourceType: webcam;' physics="debug: true">
+    <!--<a-sky color="#6EBAA7"></a-sky>-->
+    <!--<a-camera class="camera" position='0 0 -10000' user-height='0'>-->
+    <!--&lt;!&ndash;<a-animation attribute="rotation" easing="linear" from="0 0 180" to="0 0 -180" dur="15000" repeat="indefinite"></a-animation>&ndash;&gt;-->
+    <!--</a-camera>-->
+
+    <a-camera class="camera" position="0 5 0" user-height="0" rotation="-90 0 0"
+              look-controls-enabled="true" mouse-cursor>
+        <!--<a-entity cursor="fuse: true; maxDistance: 30; timeout: 500"-->
+                  <!--position="0 0 -5"-->
+                  <!--geometry="primitive: ring"-->
+                  <!--material="color: grey; shader: flat">-->
+        <!--</a-entity>-->
+    </a-camera>
+    <!--<a-marker-camera class="camera" preset='hiro' position='0 0 5' user-height='0'></a-marker-camera>-->
+    <a-assets>
+        <a-asset-item id="lenin_dae" src="../src/html/3d/lenin/lenin.dae?v=1"></a-asset-item>
+    </a-assets>
+
+
+    <a-entity  id="a-obj" class="clickable" style="pointer-events: auto;"  collada-model="#lenin_dae"  rotation="-10 0 0"
+               scale=".5 .5 .5" position="0 0 0"
+               onclick="
+              (function(el) {
+
+                  new TWEEN.Tween( el.object3D.rotation ).to( {
+                     //rotation: 360
+                        x: THREE.Math.degToRad(-110)
+                        //y: Math.random() * 2 * Math.PI,
+                        //z: Math.random() * 2 * Math.PI
+                    }, 4000 )
+                        .easing( TWEEN.Easing.Exponential.In).start();
+
+              })(this);">
+ </a-entity>
+
+</a-scene>
+</div>
+
+</body>
+

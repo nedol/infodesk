@@ -1,0 +1,414 @@
+<!-- AR.js by @jerome_etienne - github: https://github.com/jeromeetienne/ar.js - info: https://medium.com/arjs/augmented-reality-in-10-lines-of-html-4e193ea9fdbf -->
+<script src="./libs/aframe.min.js"></script>
+<script src="libs/aframe-animation-component@3.2.5.js"></script>
+<script src="libs/aframe-event-set-component.js"></script>
+<script src="./libs/aframe-extras.min.js"></script>
+<!--<script src="./libs/aframe-ar.js"></script>-->
+<script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v2.0.0/dist/aframe-physics-system.min.js"></script>
+<script src="../libs/jquery/jquery-2.2.4.min.js"></script>
+<script src="../libs/jquery/jquery-ui.min.js"></script>
+<script src="../libs/jquery/jquery.ui.touch-punch.min.js"></script>
+<script src='./libs/Projector.js'></script>
+<script src='./libs/threex.objcoord.js'></script>
+<script src="https://unpkg.com/aframe-text-geometry-component@0.5.1/dist/aframe-text-geometry-component.min.js"></script>
+<script src="./libs/compass.js"></script>
+
+<style>
+    @-webkit-keyframes swing
+    {
+        15%
+        {
+            -webkit-transform: translateX(5px);
+            transform: translateX(5px);
+        }
+        30%
+        {
+            -webkit-transform: translateX(-5px);
+            transform: translateX(-5px);
+        }
+        50%
+        {
+            -webkit-transform: translateX(3px);
+            transform: translateX(3px);
+        }
+        65%
+        {
+            -webkit-transform: translateX(-3px);
+            transform: translateX(-3px);
+        }
+        80%
+        {
+            -webkit-transform: translateX(2px);
+            transform: translateX(2px);
+        }
+        100%
+        {
+            -webkit-transform: translateX(0);
+            transform: translateX(0);
+        }
+    }
+    @keyframes swing
+    {
+        15%
+        {
+            -webkit-transform: translateX(5px);
+            transform: translateX(5px);
+        }
+        30%
+        {
+            -webkit-transform: translateX(-5px);
+            transform: translateX(-5px);
+        }
+        50%
+        {
+            -webkit-transform: translateX(3px);
+            transform: translateX(3px);
+        }
+        65%
+        {
+            -webkit-transform: translateX(-3px);
+            transform: translateX(-3px);
+        }
+        80%
+        {
+            -webkit-transform: translateX(2px);
+            transform: translateX(2px);
+        }
+        100%
+        {
+            -webkit-transform: translateX(0);
+            transform: translateX(0);
+        }
+    }
+    .swing:hover
+    {
+        -webkit-animation: swing 1s ease;
+        animation: swing 1s ease;
+        -webkit-animation-iteration-count: 1;
+        animation-iteration-count: 1;
+    }
+</style>
+<script>
+
+    var ainim_interval;
+    var w;
+
+    function OnLoadBody() {
+
+        Compass.noSupport(function () {
+            $('.compass').hide();
+        });
+
+        Compass.needGPS(function () {
+            $('.go-outside-message').show();          // Step 1: we need GPS signal
+        }).needMove(function () {
+            $('.go-outside-message').hide()
+            $('.move-and-hold-ahead-message').show(); // Step 2: user must go forward
+        }).init(function () {
+            $('.move-and-hold-ahead-message').hide(); // GPS hack is enabled
+        });
+
+        Compass.init(function (method) {
+            console.log('Compass heading by ' + method);
+        });
+
+        Compass.watch(function (heading) {
+            $('.degrees').text(heading);
+            $('.compass').css('transform', 'rotate(' + (-heading) + 'deg)');
+        });
+
+        AFRAME.registerComponent('log', {
+            schema: {type: 'string'},
+            init: function () {
+                var stringToLog = this.data;
+                console.log(stringToLog);
+            }
+        });
+
+        $('#pplane').on('click', function () {
+            alert('');
+        });
+        for(var i=0;i<4;i++)
+            AddFlyer(i);
+    }
+
+    function AddFlyer(id) {
+
+        var flr = '<a-image class="flyer" id="flr' + id + '" mixin="image" src="#pplane" scale="1 1 1" position="-10 -5 0">' +
+            '<a-animation attribute="rotation" easing="linear" from="0 0 -40" to="0 0 -60" dur="200"  ' +
+            'repeat="indefinite"></a-animation>' +
+            '</a-image>';
+        $(flr).appendTo($('a-scene'));
+
+            ainim_interval = setInterval(function (flyer) {
+
+//                if($('#net').attr('status')==='0')
+//                    CheckFlyer();
+
+                var pos = flyer.object3D.position;
+                var anim_pos = $(flyer).find('[attribute=position]');
+                if (anim_pos[0])
+                    anim_pos[0].remove();
+                var rand_x = parseFloat(getRandomArbitrary(-1, 1)) + parseFloat(pos.x);
+                if (Math.abs(rand_x) > 1)
+                    rand_x += rand_x >= 0 ? -.2 : .2;
+                var rand_y = parseFloat(getRandomArbitrary(-1, 1)) + parseFloat(pos.y);
+                if (Math.abs(rand_y) > 1)
+                    rand_y += rand_y >= 0 ? -.2 : .2;
+                var rand_z = parseInt(getRandomInteger(-1, 1)) + parseFloat(pos.z);
+                if (Math.abs(rand_z) > .5)
+                    rand_z += rand_z >= 0 ? -.2 : .2;
+
+                var ease = getRandEasing();
+
+                var posAr = {
+                    from: [(pos.x).toFixed(2), (pos.y).toFixed(2), (pos.z).toFixed(2)],
+                    to: [rand_x, rand_y, rand_z]
+                };
+
+                var apos = '<a-animation attribute="position" ' +
+                    'from="' + posAr.from[0] + ' ' + posAr.from[1] + ' ' + posAr.from[2] + '" ' +
+                    'to="' + posAr.to[0] + ' ' + posAr.to[1] + ' ' + posAr.to[2] +
+                    '" ' +
+                    //                    'repeat="indefinite"'+
+                    'dur="500"  delay="0" fill="both" easing="linear"></a-animation>';
+
+                $(apos).appendTo(flyer);
+
+        }, 500+id*10, $('#flr'+id)[0]);
+    }
+
+//        if(typeof(Worker) !== "undefined") {
+//            if(typeof(w) == "undefined") {
+//                w = new Worker('worker.js');
+//                w.postMessage('Hello World');
+//            }
+//            w.onmessage = function(event) {
+//
+//            };
+//        } else {
+//            document.getElementById("result").innerHTML = "Sorry, your browser does not support Web Workers...";
+//        }
+//    }
+//
+     chk_flr__interval = setInterval(function () {
+         if($('#net').attr('status')==='0')
+             CheckFlyer();
+
+     },200);
+
+    function CheckFlyer(){
+
+        var camera = $('.camera')[0].components.camera;
+        var rend = $('a-scene')[0].renderer;
+        var flyerAr = $('a-image.flyer');
+        for(var i=0;i<flyerAr.length;i++) {
+            if (flyerAr[i]) {
+                var pos = THREEx.ObjCoord.cssPosition(flyerAr[i].object3D, camera.camera, rend);
+
+                var net_rect = $('#net').get(0).getBoundingClientRect();
+                var b_rect = $('body').get(0).getBoundingClientRect();
+
+//                var dist_net = Math.sqrt(
+//                    Math.pow((net_rect.left+100)-pos.x,2)+
+//                    Math.pow(net_rect.top-100 - (screen.height - pos.y),2));
+//
+//                if(dist_net<100){
+//                    //MoveFlyer(flyerAr[i], net_rect);
+//                }
+
+                if (net_rect.left < pos.x && net_rect.right > pos.x && screen.height - pos.y < 200 && screen.height - pos.y > 0
+                    && flyerAr[i].components.position.attrValue.z>=0.7) {
+                    $('#net').attr('status', '1');
+                    $('a-scene').find(flyerAr[i]).remove();
+                    var flyer_new = $('#img_flyer').clone().get(0);
+                    $(flyer_new).insertAfter($('#img_flyer'));
+                    $(flyer_new).css('display', 'block');
+                    $(flyer_new).draggable({
+                        distance: 20,
+                        start: function () {
+                            console.log("flyer drag");
+                        },
+                        drag: function () {
+                            $(flyer_new).attr('drag', true);
+                        },
+                        stop: function () {
+                            $('#net').attr('status', "0");
+                            AddFlyer();
+                        }
+                    });
+                }
+
+            }
+        }
+    };
+
+    function MoveFlyer(flyer, net_pos){
+
+        var anim_pos = $(flyer).find('[attribute=position]');
+        var rand_y = getRandomArbitrary(-.5, .5).toFixed(2);
+        var rand_z = getRandomArbitrary(-1, 1).toFixed(2);
+        var pos = flyer.object3D.position;
+
+        if(anim_pos[0]) {
+
+            anim_pos[0].remove();
+            var anim= '<a-animation attribute="position" ' +
+                'from="' + (pos.x - 1) + ' ' + pos.z + ' ' + pos.y + '"  ' +
+                'to="' + (pos.x - 2) + ' ' + (pos.z - 1) + ' ' + (pos.y- 1) + '" ' +
+                'dur="1000" delay="0" fill="forwards" easing="linear"></a-animation>';
+            $(anim).appendTo(flyer);
+
+        }else {
+
+        }
+    }
+
+    function AddFlyersLoop(){
+
+        var cnt = 0;
+        setInterval(function () {
+            cnt++;
+            var pplane = '<a-image class="flyer" id="pplane'+cnt+'" mixin="image" src="#pplane" scale="1 1 1" position="0 0 0">';
+            var x = -10;
+            var z = 0;
+            var items = [-1,1];
+            for(var i=0;i<=20;i++) {
+                var sign_y = items[Math.floor(Math.random()*items.length)];
+                var sign_z = items[Math.floor(Math.random()*items.length)];
+                var rand_y = getRandomArbitrary(-.5,.5).toFixed(2);
+                var rand_z = getRandomArbitrary(-1,1).toFixed(2);
+                pplane+=
+                    '<a-animation attribute="position" ' +
+                    'from="'+x+' '+rand_z+' '+rand_y+'"  ' +
+                    'to="'+(x+1)+' '+(parseFloat(rand_z)+parseFloat(sign_z*.5)).toFixed(2)+' '+(parseFloat(rand_y)+parseFloat(sign_y*.5)).toFixed(2)+'" ' +
+                    'dur="1000" delay="'+i*1000+'" fill="forwards" easing="linear" ' +
+                    'onanimationend="OnAnimationEnd();"></a-animation>';
+                x++;
+//                if(i<10)
+//                    z++;
+//                else
+//                    z--;
+            }
+            pplane+=
+                '<a-animation id="1" attribute="rotation" easing="linear" from="-65 0 -30" to="-115 0 -50" dur="200"  repeat="indefinite"></a-animation>';
+//            pplane+=
+//            '<a-animation id="2" attribute="rotation" easing="ease-in"  to="-90 0 -25" dur="150"  repeat="indefinite"></a-animation>';
+            pplane+=
+                '</a-image>';
+
+            $(pplane).appendTo($('a-scene'));
+
+            setTimeout(function (pplane) {
+                $('a-scene').find(pplane).remove();
+            }, 20000, pplane);
+        }, 5000);
+
+        setInterval(function () {
+            if($('#net').attr('status')==='0')
+                CheckFlyer();
+        },100);
+    }
+
+
+
+
+    function getRandomArbitrary(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    function getRandomInteger(min, max) {
+        var rand = min - 0.5 + Math.random() * (max - min + 1)
+        rand = Math.round(rand);
+        return rand;
+    }
+
+    function getRandEasing(){
+        var easeAr = ['linear','ease','ease-in','ease-out','v'];
+        var r= getRandomInteger(0,easeAr.length-1);
+        var val = easeAr[r];
+        return val;
+    }
+
+</script>
+<body style='margin : 0px; overflow: hidden;' onload="OnLoadBody();">
+<a-scene  log="Hello, Scene!" embedded arjs='sourceType: webcam;' physics="debug: true">
+    <!--<a-sky color="#6EBAA7"></a-sky>-->
+    <a-camera class="camera" position='0 0 15' user-height='0'>
+        <!--<a-animation attribute="rotation" easing="linear" from="0 0 180" to="0 0 -180" dur="15000" repeat="indefinite"></a-animation>-->
+    </a-camera>
+    <!--<a-marker-camera class="camera" preset='hiro' position='0 0 5' user-height='0'></a-marker-camera>-->
+    <a-assets>
+        <a-mixin id="image" rotation="-90 0 0" geometry="height: 1; width: 1"></a-mixin>
+        <a-mixin id="image1" rotation="0 0 0" geometry="height: 1; width: 1"></a-mixin>
+        <img id="pplane" src="./butterfly.2.gif">
+        <a-asset-item id="dawningFont" src="https://cdn.glitch.com/c719c986-c0c5-48b8-967c-3cd8b8aa17f3%2FdawningOfANewDayRegular.typeface.json?1490305922844"></a-asset-item>
+        <img id="pink" src="https://img.gs/bbdkhfbzkk/stretch/http://i.imgur.com/1hyyIUi.jpg" crossorigin="anonymous" />
+        <a-asset-item id="trex_obj" src="./3d/trex/T-Rex Model.obj"></a-asset-item>
+        <a-asset-item id="trex_mtl" src="./3d/trex/T-Rex Model.mtl"></a-asset-item>
+
+    </a-assets>
+
+    <a-sphere color="grey" position='-10 0 0'
+           event-set__1="_event: click; material.color: red; scale: 2 2 2"
+           event-set__2="_event: mouseenter; material.color: blue"></a-sphere>
+
+    <a-sphere color="grey" position='10 0 0'
+           event-set__1="_event: click; material.color: red; scale: 2 2 2"
+           event-set__2="_event: mouseenter; material.color: blue"></a-sphere>
+
+    <!--<a-plane color="#CCC" height="1" width="1" rotation="0 0 0" position="0 0 5"></a-plane>-->
+    <!--<a-entity-->
+            <!--rotation="-90 0 0"-->
+            <!--position="0 0 0.2"-->
+            <!--text-geometry="value: Hunting season for butterfly is opened; font: #dawningFont; bevelEnabled: true; bevelSize: 0.05; bevelThickness: 0.05; curveSegments: 12; size: 1; height: 0;"-->
+            <!--material="color:lavenderblush; metalness:1; roughness: 0; sphericalEnvMap: #pink;">-->
+    <!--</a-entity>-->
+    <a-text value="Hunting season for butterflies is opened"
+            color="red"
+            height=".4"
+            width = "1.2"
+            wrap-count = "10"
+            align = "center"
+            z-offset = ".1"
+            rotation="0 0 0"
+            position="0 0 6"></a-text>
+
+        <a-entity obj-model="obj: #trex_obj; mtl: #trex_mtl;"  rotation="0 0 0" scale=".08 .08 .08" position="0 -20 -100"></a-entity>
+
+</a-scene>
+
+<!--<a-scene id="net">-->
+
+<!--</a-scene>-->
+
+<section id="net" class="swing" status="0"
+     style="
+         position: absolute;
+         display:block;
+        /*z-index:30;*/
+        bottom: 0;
+        /*right: 50%;*/
+        left: 50%;
+        width: 200px;
+        height: 200px;">
+    <img id="img_flyer" src='./butterfly.2.gif' style="
+        display: none;
+        position: absolute;
+        width: 70%;
+        height: 70%;
+        cursor: hand;">
+    <img  id="butterfly_net" src="butterfly_net.png" usemap="map_net"
+        style="
+            display: block;
+            position: absolute;
+            pointer-events: none;
+            width: 100%;
+            height: 100%;">
+        <p><map name="map_net">
+            <area id="map_net" shape="circle" coords="100,70,90"  alt="Сачок">
+        </map></p>
+
+</section>
+</body>
+

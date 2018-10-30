@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="0a87e751-3bdf-4551-8d91-642899fb5ea6" name="a07513cy.beget.tech" url="http://a07513cy.beget.tech">
+        <fileTransfer host="a07513cy.beget.tech" port="21" rootFolder="/nedol/public_html/">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="21" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="319e8507-ae2e-4ec6-bae5-63bc207d8e70" name="infodesk (project level)" url="http://a07513cy.beget.tech">
+        <fileTransfer host="a07513cy.beget.tech" port="21" rootFolder="/nedol/public_html/infodesk">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" />
+          </advancedOptions>
+          <option name="port" value="21" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

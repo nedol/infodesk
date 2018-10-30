@@ -1,0 +1,100 @@
+<!-- AR.js by @jerome_etienne - github: https://github.com/jeromeetienne/ar.js - info: https://medium.com/arjs/augmented-reality-in-10-lines-of-html-4e193ea9fdbf -->
+<script src="../../libs/jquery/jquery-2.2.4.min.js"></script>
+<script src="../../libs/aframe/aframe.min.js"></script>
+<script src="../../libs/aframe/aframe-animation-component@3.2.5.js"></script>
+<script src="../../libs/aframe/aframe-event-set-component.js"></script>
+<script src="../../libs/aframe/aframe-extras.min.js"></script>
+<!--<script src="./libs/aframe-ar.js"></script>-->
+<!--<script src="//cdn.rawgit.com/donmccurdy/aframe-physics-system/v2.0.0/dist/aframe-physics-system.min.js"></script>-->
+
+<script src='../../libs/aframe/threex.objcoord.js'></script>
+<script src="https://unpkg.com/aframe-text-geometry-component@0.5.1/dist/aframe-text-geometry-component.min.js"></script>
+
+
+<script>
+    var SCREEN_WIDTH = parent.innerWidth;
+    var SCREEN_HEIGHT = parent.innerHeight;
+    var aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
+    var frustumSize = 600;
+
+    function Init(){
+
+    }
+
+
+
+</script>
+<body style='margin : 0px; overflow: hidden;' onload="Init();">
+<a-scene  style="pointer-events: auto;" vr-mode-ui="enabled: false" embedded arjs='sourceType: webcam;' physics="debug: true">
+    <a-sky color="#6EBAA7"></a-sky>
+
+    <a-camera class="camera" position="0 30 0" user-height="0" rotation="-90 0 0" camera="active:true" look-controls="" wasd-controls=""
+          mouse-cursor="">
+        <a-cursor></a-cursor>
+    </a-camera>
+    <!--<a-marker-camera class="camera" preset='hiro' position='0 0 5' user-height='0'></a-marker-camera>-->
+    <a-assets>
+
+        <a-asset-item id="eiffel_obj" src="../src/html/3d/eiffel/eiffel.obj"></a-asset-item>
+        <!--<a-asset-item id="tower_mtl" src="./3d/eiffel/toureffeil.mtl"></a-asset-item>-->
+    </a-assets>
+
+
+    <a-entity style="pointer-events: auto;" id="a-obj" obj-model="obj:#eiffel_obj" rotation="0 45 0"
+              scale="1 1 1" position= "0 0 0" material="color: gray; opacity: 1"
+              onload = "(function(el) {
+
+                el.addEventListener('click',function (event) {
+                   new TWEEN.Tween( this.object3D.rotation ).to( {
+                        //rotation: 360
+                        y: THREE.Math.degToRad(225)
+                        //y: Math.random() * 2 * Math.PI,
+                        //z: Math.random() * 2 * Math.PI
+                    }, 2000 )
+                    .repeat(0)//Infinity)
+                    .onUpdate(function() { // Called after tween.js updates
+
+                    })
+                    .easing( TWEEN.Easing.Elastic.Out).start();
+                });
+
+                el.addEventListener('componentchanged',function (event) {
+                    console.log('Entity event type '+ event.type);
+                });
+
+
+                el.addEventListener('change:zoom', function (event, ev) {
+
+                    var zoom =  event.detail.zoom;
+                    console.log('change:zoom '+ zoom);
+                    var to = this.object3D.rotation.x;
+                    if(this) {
+                        if (zoom >= 20)
+                            to = THREE.Math.degToRad(-60);
+                        else if (zoom >= 19)
+                            to = THREE.Math.degToRad(-40);
+                        else if (zoom == 18)
+                            to = THREE.Math.degToRad(-30);
+                        else if (zoom == 17)
+                            to = THREE.Math.degToRad(-20);
+
+                        new TWEEN.Tween( this.object3D.rotation ).to( {
+                            //rotation: 360
+                            x: to,
+                            y: THREE.Math.degToRad(-45)
+                            //z: Math.random() * 2 * Math.PI
+                        }, 2000 )
+                            .easing( TWEEN.Easing.Exponential.In).start();
+
+                    }
+                });
+              })(this);">
+
+    </a-entity>
+
+
+</a-scene>
+
+
+</body>
+
